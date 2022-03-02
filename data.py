@@ -3,8 +3,8 @@ import json
 import typing
 import time
 
-
 class ItemInfoStruct:
+    uid: str = ""
     name: str = "Name"
     shortName: str = "Short Name"
     price: float = 0.0
@@ -17,11 +17,12 @@ class ItemInfoStruct:
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 itemInfoStructs: typing.List["ItemInfoStruct"] = []
-request = requests.get("https://tarkov-market.com/api/v1/items/all?x-api-key=" + API_KEY)
-if (request.status_code == 200):
-    for data in request.json():
+response = requests.get("https://tarkov-market.com/api/v1/items/all?x-api-key=" + API_KEY)
+if (response.status_code == 200):
+    for data in response.json():
         print(data["name"])
         itemInfoStruct: ItemInfoStruct = ItemInfoStruct()
+        itemInfoStruct.uid = data["uid"]
         itemInfoStruct.name = data["name"]
         itemInfoStruct.shortName = data["shortName"]
         itemInfoStruct.price = data["price"]
@@ -30,9 +31,8 @@ if (request.status_code == 200):
         itemInfoStruct.slots = data["slots"]
         itemInfoStruct.iconPath = data["icon"]
         itemInfoStructs.append(itemInfoStruct)
-        time.sleep(0.1)
 else:
-    print("Error: Request failed, status code: " + str(r.status_code))
+    print("Error: Request failed, status code: " + str(response.status_code))
 
 def dumper(obj):
     return obj.__dict__

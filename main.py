@@ -4,6 +4,7 @@ import pyautogui as pg
 from scipy.spatial import distance
 import requests
 import typing
+import json
 
 CONFIG_DUPLICATE_DISTANCE_CUTOFF: float = 25.0
 
@@ -31,11 +32,16 @@ class ScanResult:
 		
 	def GetCount(self) -> int:
 		return self._count
-	
 
-def Scan(itemInfo: ItemInfo) -> ScanResult:
-	screenshot = pg.screenshot()
-	screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+scanCount = 0
+
+def Scan(screenshot, itemInfo: ItemInfo) -> ScanResult:
+	global scanCount
+	scanCount += 1
+	if scanCount > 100:
+		return
+
+	print("SCAN-" + str(scanCount) + " | Scanning for: " + str(itemInfo.GetIconPath()))
 
 	sortedItems = []
 	for i in pg.locateAllOnScreen(itemInfo.GetIconPath(), confidence=itemInfo.GetConfidence()):
@@ -52,14 +58,22 @@ def Scan(itemInfo: ItemInfo) -> ScanResult:
 		print("Item: " + str(i.top))
 		cv2.rectangle(screenshot, (i.left, i.top), (i.left + i.width, i.top + i.height), (0, 255, 0))
 
-	cv2.imshow("Screenshot", screenshot)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
-
 	return ScanResult(len(sortedItems))
 
-scanItemInfos = [
-	ItemInfo("icon01.png")
-]
+with open("data.json", 'r') as file:
+    data = file.read()
+obj = json.loads(data)
 
-scanInfo: ScanResult = Scan(testItem)
+scanItemInfos = []
+for item in obj:
+	scanItemInfos.append(ItemInfo("icons/" + item["uid"] + ".png", item["price"], 0.9))
+
+screenshot = pg.screenshot()
+screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+
+for scanItemInfo in scanItemInfos:
+	Scan(screenshot, scanItemInfo)	
+
+cv2.imshow("Screenshot", screenshot)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
