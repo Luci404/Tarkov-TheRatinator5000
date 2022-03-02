@@ -2,16 +2,19 @@ import cv2
 import numpy as np
 import pyautogui as pg
 from scipy.spatial import distance
+import requests
 import typing
 
 CONFIG_DUPLICATE_DISTANCE_CUTOFF: float = 25.0
 
 class ItemInfo:
 	_iconPath: str
+	_value: float
 	_confidence: float
 
-	def __init__(self, itemPath, confidence = 0.8) -> None:
+	def __init__(self, itemPath, value, confidence = 0.8) -> None:
 		self._itemPath = itemPath
+		self._value = value
 		self._confidence = confidence
 
 	def GetIconPath(self) -> str:
@@ -55,5 +58,8 @@ def Scan(itemInfo: ItemInfo) -> ScanResult:
 
 	return ScanResult(len(sortedItems))
 
-testItem: ItemInfo = ItemInfo("icon01.png")
+scanItemInfos = [
+	ItemInfo("icon01.png")
+]
+
 scanInfo: ScanResult = Scan(testItem)
